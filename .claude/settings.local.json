@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__auggie-mcp__codebase-retrieval",
+      "Skill(skill-creator)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
