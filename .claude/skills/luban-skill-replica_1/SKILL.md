@@ -519,6 +519,156 @@ sheet.append([value1, value2, value3])
 wb.save('file.xlsx')
 ```
 
+### 批量修改数据行（高效方法）
+
+对于**几百行数据**的批量修改，推荐使用 **pandas + openpyxl** 组合：
+
+#### 方法1：pandas 批量过滤和修改（推荐，最快）
+
+```python
+import pandas as pd
+import openpyxl
+from openpyxl import load_workbook
+
+# 1. 用 pandas 读取数据部分（跳过标题头）
+df = pd.read_excel('table.xlsx', header=None, skiprows=4)  # 跳过前4行标题头
+
+# 2. 批量过滤和修改（高效）
+# 示例：修改所有 level > 50 的行的某个字段
+mask = df[1] > 50  # 假设 level 在第2列（索引1）
+df.loc[mask, 2] = 'new_value'  # 修改第3列
+
+# 或者根据字符串特征过滤
+mask = df[1].str.contains('warrior', case=False, na=False)  # 包含 'warrior'
+df.loc[mask, 3] = 'updated_value'
+
+# 3. 用 openpyxl 保留格式，只更新数据
+wb = load_workbook('table.xlsx')
+sheet = wb.active
+
+# 将修改后的数据写回（从第5行开始，跳过标题头）
+for idx, row in df.iterrows():
+    excel_row = idx + 5  # 数据从第5行开始
+    for col_idx, value in enumerate(row, start=2):  # 从第2列开始（第1列是##）
+        sheet.cell(excel_row, col_idx).value = value
+
+wb.save('table.xlsx')
+```
+
+#### 方法2：openpyxl 直接遍历（简单但较慢）
+
+```python
+from openpyxl import load_workbook
+
+wb = load_workbook('table.xlsx')
+sheet = wb.active
+
+# 找到特征列
+feature_col = 2  # 假设特征在第2列
+target_col = 3   # 要修改的列
+
+# 遍历数据行（从第5行开始）
+for row_idx in range(5, sheet.max_row + 1):
+    value = sheet.cell(row_idx, feature_col).value
+    if value and 'warrior' in str(value).lower():  # 特征匹配
+        sheet.cell(row_idx, target_col).value = 'new_value'
+
+wb.save('table.xlsx')
+```
+
+**性能对比**（500行数据）：
+- pandas 方法：~0.1-0.3秒
+- openpyxl 逐行：~1-3秒
+
+**建议**：
+- 简单修改（<50行）：直接用 openpyxl
+- 批量修改（>100行）：用 pandas 过滤 + openpyxl 写回
+- 需要保留格式/合并单元格：必须用 openpyxl
+
+#### 实际示例：根据名字修改攻击力
+
+```python
+import pandas as pd
+from openpyxl import load_workbook
+
+# 场景：修改名字是"熊猫"的行的攻击力
+
+# 方法1：自动查找列位置（推荐）
+wb = load_workbook('character.xlsx')
+sheet = wb.active
+
+# 找到 name 和 atk 列的 Excel 列号（从第1行 ##var 查找）
+name_col_excel = None
+atk_col_excel = None
+for col in range(1, sheet.max_column + 1):
+    header = sheet.cell(1, col).value  # 第1行是 ##var
+    if header == 'name':
+        name_col_excel = col
+    elif header == 'atk' or header == 'attack':
+        atk_col_excel = col
+
+if not name_col_excel or not atk_col_excel:
+    print("未找到 name 或 atk 列")
+    exit(1)
+
+print(f"name 列: {name_col_excel}, atk 列: {atk_col_excel}")
+
+# 读取数据（假设标题头占4行，数据从第5行开始）
+df = pd.read_excel('character.xlsx', header=None, skiprows=4)
+
+# 转换为 DataFrame 列索引（从0开始）
+name_col_df = name_col_excel - 2  # Excel列号减2（因为第1列是##，第2列是id）
+atk_col_df = atk_col_excel - 2
+
+# 批量筛选和修改（高效！）
+mask = df[name_col_df] == '熊猫'  # 精确匹配
+# 或者：mask = df[name_col_df].str.contains('熊猫', na=False)  # 包含匹配
+
+if mask.sum() == 0:
+    print("未找到匹配的行")
+else:
+    # 修改攻击力
+    old_values = df.loc[mask, atk_col_df].copy()
+    df.loc[mask, atk_col_df] = 150  # 设置为新值
+    # 或者：df.loc[mask, atk_col_df] = df.loc[mask, atk_col_df] * 1.2  # 增加20%
+    
+    print(f"找到 {mask.sum()} 行匹配")
+    for idx in df[mask].index:
+        excel_row = idx + 5
+        old_val = old_values.loc[idx]
+        new_val = df.loc[idx, atk_col_df]
+        print(f"  行 {excel_row}: {old_val} -> {new_val}")
+        sheet.cell(excel_row, atk_col_excel).value = new_val
+    
+    wb.save('character.xlsx')
+    print("修改完成！")
+```
+
+**方法2：直接指定列位置（更快，但需要知道列号）**
+
+```python
+import pandas as pd
+from openpyxl import load_workbook
+
+df = pd.read_excel('character.xlsx', header=None, skiprows=4)
+
+# 直接指定列索引（根据实际表结构调整）
+mask = df[2] == '熊猫'  # name 在第3列（索引2）
+df.loc[mask, 3] = 150   # atk 在第4列（索引3）
+
+# 写回
+wb = load_workbook('character.xlsx')
+sheet = wb.active
+for idx in df[mask].index:
+    sheet.cell(idx + 5, 5).value = df.loc[idx, 3]  # Excel列号需要+2
+wb.save('character.xlsx')
+```
+
+**效率分析**：
+- 对于**几百行数据**，pandas 的向量化操作非常高效（~0.1-0.3秒）
+- 即使只有1行匹配，也比逐行遍历快（因为 pandas 先构建索引）
+- 如果表有**合并单元格**，需要先用 openpyxl 读取列位置，再用 pandas 处理数据
+
 ### Luban 命令
 
 ```bash
@@ -564,6 +714,8 @@ A: openpyxl 默认支持 UTF-8，但 Windows Excel 打开可能乱码。解决�
 2. 或在 Excel 中选择"数据" → "获取数据" → "导入 Excel"，指定编码
 
 ---
+
+完成任务后，删除临时创建的py脚本
 
 **学习路径建议**：
 1. 从简单表开始（枚举 + 基础类型）
