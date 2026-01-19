@@ -1,0 +1,142 @@
+请使用以下 Skill 来完成 RPG 游戏配置任务：
+
+Skill 位置: /Users/liujinyu/Documents/GitHub/luban_examples/training/skills/skill_v1_002
+
+任务需求:
+# RPG 游戏配置需求文档
+
+## 项目概述
+
+设计一个完整的 RPG 游戏配置系统，使用 Luban 配置工具进行数据管理。该系统需要涵盖游戏的所有核心模块，并使用 Luban 的所有 Excel 格式功能。
+
+## 一、枚举类型定义 (__enums__.xlsx)
+
+### 1.1 角色相关枚举
+
+```
+ECharacterClass - 角色职业枚举
+  WARRIOR(战士) = 1
+  MAGE(法师) = 2
+  ARCHER(弓箭手) = 3
+  PRIEST(牧师) = 4
+  ASSASSIN(刺客) = 5
+
+EElementType - 元素类型枚举
+  FIRE(火) = 1
+  ICE(冰) = 2
+  THUNDER(雷) = 3
+  WIND(风) = 4
+  EARTH(土) = 5
+  LIGHT(光) = 6
+  DARK(暗) = 7
+
+ERarity - 稀有度枚举
+  COMMON(普通) = 1
+  UNCOMMON(优秀) = 2
+  RARE(稀有) = 3
+  EPIC(史诗) = 4
+  LEGENDARY(传说) = 5
+
+EBuffType - Buff类型枚举 (flags=true)
+  ATTACK_UP(攻击提升) = 1
+  DEFENSE_UP(防御提升) = 2
+  SPEED_UP(速度提升) = 4
+  HEAL_OVER_TIME(持续治疗) = 8
+  INVINCIBLE(无敌) = 16
+  STUN(眩晕) = 32
+  SILENCE(沉默) = 64
+```
+
+### 1.2 装备相关枚举
+
+```
+EEquipSlot - 装备槽位枚举
+  WEAPON(武器) = 1
+  HEAD(头盔) = 2
+  CHEST(胸甲) = 3
+  LEGS(腿甲) = 4
+  BOOTS(鞋子) = 5
+  RING(戒指) = 6
+  NECKLACE(项链) = 7
+
+EWeaponType - 武器类型枚举
+  SWORD(剑) = 1
+  BOW(弓) = 2
+  STAFF(法杖) = 3
+  DAGGER(匕首) = 4
+  HAMMER(锤子) = 5
+```
+
+### 1.3 任务相关枚举
+
+```
+EQuestType - 任务类型枚举
+  MAIN(主线) = 1
+  SIDE(支线) = 2
+  DAILY(日常) = 3
+  WEEKLY(周常) = 4
+  EVENT(活动) = 5
+
+EQuestStatus - 任务状态枚举
+  LOCKED(未解锁) = 0
+  AVAILABLE(可接取) = 1
+  IN_PROGRESS(进行中) = 2
+  COMPLETED(已完成) = 3
+```
+
+## 二、Bean类型定义 (__beans__.xlsx)
+
+### 2.1 基础数据结构
+
+```xml
+<!-- 向量类型 -->
+<bean name="Vec2" sep=",">
+  <var name="x" type="float"/>
+  <var name="y" type="float"/>
+</bean>
+
+<bean name="Vec3" sep=",">
+  <var name="x" type="float"/>
+  <var name="y" type="float"/>
+  <var name="z" type="float"/>
+</bean>
+
+<!-- 数值范围 -->
+<bean name="IntRange" sep="-">
+  <var name="min" type="int"/>
+  <var name="max" type="int"/>
+</bean>
+
+<bean name="FloatRange" sep="-">
+  <var name="min" type="float"/>
+  <var name="max" type="float"/>
+</bean>
+
+<!-- 日期时间范围 -->
+<bean name="DateTimeRange" sep=";">
+  <var name="start" type="datetime?"/>
+  <var name="end" type="datetime?"/>
+</bean>
+```
+
+### 2.2 奖励结构
+
+```xml
+<!-- 单个奖励 -->
+<bean name="Reward" sep=",">
+  <var name="item_id" type="int"/>
+  <var name="count" type="int"/>
+</bean>
+
+<!-- 随机奖励 -->
+<bean na...
+
+请生成完整的 Luban 配置表系统，包括：
+1. 枚举定义 (__enums__.xlsx)
+2. Bean 定义 (__beans__.xlsx)  
+3. 表定义 (__tables__.xlsx)
+4. 所有数据表
+
+输出目录: /Users/liujinyu/Documents/GitHub/luban_examples/training/results/skill_v1_002
+
+请开始执行。

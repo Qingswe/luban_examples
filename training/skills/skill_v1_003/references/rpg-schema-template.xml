@@ -1,0 +1,368 @@
+<module name="rpg">
+
+    <!-- ========================
+         Enums (含中文别名与 flags)
+         ======================== -->
+
+    <enum name="ECharacterClass">
+        <var name="WARRIOR" alias="战士" value="1"/>
+        <var name="MAGE" alias="法师" value="2"/>
+        <var name="ARCHER" alias="弓箭手" value="3"/>
+        <var name="PRIEST" alias="牧师" value="4"/>
+        <var name="ASSASSIN" alias="刺客" value="5"/>
+    </enum>
+
+    <enum name="EElementType">
+        <var name="FIRE" alias="火" value="1"/>
+        <var name="ICE" alias="冰" value="2"/>
+        <var name="THUNDER" alias="雷" value="3"/>
+        <var name="WIND" alias="风" value="4"/>
+        <var name="EARTH" alias="土" value="5"/>
+        <var name="LIGHT" alias="光" value="6"/>
+        <var name="DARK" alias="暗" value="7"/>
+    </enum>
+
+    <enum name="ERarity">
+        <var name="COMMON" alias="普通" value="1"/>
+        <var name="UNCOMMON" alias="优秀" value="2"/>
+        <var name="RARE" alias="稀有" value="3"/>
+        <var name="EPIC" alias="史诗" value="4"/>
+        <var name="LEGENDARY" alias="传说" value="5"/>
+    </enum>
+
+    <enum name="EBuffType" flags="1">
+        <var name="ATTACK_UP" alias="攻击提升" value="1"/>
+        <var name="DEFENSE_UP" alias="防御提升" value="2"/>
+        <var name="SPEED_UP" alias="速度提升" value="4"/>
+        <var name="HEAL_OVER_TIME" alias="持续治疗" value="8"/>
+        <var name="INVINCIBLE" alias="无敌" value="16"/>
+        <var name="STUN" alias="眩晕" value="32"/>
+        <var name="SILENCE" alias="沉默" value="64"/>
+    </enum>
+
+    <enum name="EEquipSlot">
+        <var name="WEAPON" alias="武器" value="1"/>
+        <var name="HEAD" alias="头盔" value="2"/>
+        <var name="CHEST" alias="胸甲" value="3"/>
+        <var name="LEGS" alias="腿甲" value="4"/>
+        <var name="BOOTS" alias="鞋子" value="5"/>
+        <var name="RING" alias="戒指" value="6"/>
+        <var name="NECKLACE" alias="项链" value="7"/>
+    </enum>
+
+    <enum name="EWeaponType">
+        <var name="SWORD" alias="剑" value="1"/>
+        <var name="BOW" alias="弓" value="2"/>
+        <var name="STAFF" alias="法杖" value="3"/>
+        <var name="DAGGER" alias="匕首" value="4"/>
+        <var name="HAMMER" alias="锤子" value="5"/>
+    </enum>
+
+    <enum name="EQuestType">
+        <var name="MAIN" alias="主线" value="1"/>
+        <var name="SIDE" alias="支线" value="2"/>
+        <var name="DAILY" alias="日常" value="3"/>
+        <var name="WEEKLY" alias="周常" value="4"/>
+        <var name="EVENT" alias="活动" value="5"/>
+    </enum>
+
+    <enum name="EQuestStatus">
+        <var name="LOCKED" alias="未解锁" value="0"/>
+        <var name="AVAILABLE" alias="可接取" value="1"/>
+        <var name="IN_PROGRESS" alias="进行中" value="2"/>
+        <var name="COMPLETED" alias="已完成" value="3"/>
+    </enum>
+
+    <!-- ========================
+         Const Alias（示例）
+         ======================== -->
+
+    <constalias name="GOLD" value="1001"/>
+    <constalias name="DIAMOND" value="1002"/>
+    <constalias name="POTION_HP" value="2001"/>
+    <constalias name="POTION_MP" value="2002"/>
+
+    <!-- ========================
+         Beans（基础结构）
+         ======================== -->
+
+    <bean name="Vec2" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+    </bean>
+
+    <bean name="Vec3" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+    </bean>
+
+    <bean name="IntRange" sep="-">
+        <var name="min" type="int"/>
+        <var name="max" type="int"/>
+    </bean>
+
+    <bean name="FloatRange" sep="-">
+        <var name="min" type="float"/>
+        <var name="max" type="float"/>
+    </bean>
+
+    <bean name="DateTimeRange" sep=";">
+        <var name="start" type="datetime?"/>
+        <var name="end" type="datetime?"/>
+    </bean>
+
+    <!-- ========================
+         Beans（奖励）
+         ======================== -->
+
+    <bean name="Reward" sep=",">
+        <var name="item_id" type="int"/>
+        <var name="count" type="int"/>
+    </bean>
+
+    <bean name="RandomReward">
+        <var name="item_id" type="int"/>
+        <var name="count_range" type="IntRange"/>
+        <var name="weight" type="int"/>
+    </bean>
+
+    <bean name="RewardGroup">
+        <var name="rewards" type="list,Reward"/>
+        <var name="random_rewards" type="list,RandomReward"/>
+    </bean>
+
+    <!-- ========================
+         Beans（技能：多态 SkillEffect）
+         ======================== -->
+
+    <bean name="SkillEffect"/>
+
+    <bean name="DamageEffect" parent="SkillEffect" alias="伤害">
+        <var name="damage_type" type="EElementType"/>
+        <var name="damage_ratio" type="float"/>
+        <var name="fixed_damage" type="int"/>
+    </bean>
+
+    <bean name="HealEffect" parent="SkillEffect" alias="治疗">
+        <var name="heal_ratio" type="float"/>
+        <var name="fixed_heal" type="int"/>
+    </bean>
+
+    <bean name="BuffEffect" parent="SkillEffect" alias="增益">
+        <var name="buff_type" type="EBuffType"/>
+        <var name="duration" type="float"/>
+        <var name="value" type="float"/>
+    </bean>
+
+    <bean name="SummonEffect" parent="SkillEffect" alias="召唤">
+        <var name="summon_id" type="int"/>
+        <var name="count" type="int"/>
+        <var name="duration" type="float"/>
+    </bean>
+
+    <bean name="TeleportEffect" parent="SkillEffect" alias="传送">
+        <var name="target_position" type="Vec3"/>
+        <var name="is_relative" type="bool"/>
+    </bean>
+
+    <!-- ========================
+         Beans（装备）
+         ======================== -->
+
+    <bean name="BaseStats">
+        <var name="hp" type="int"/>
+        <var name="mp" type="int"/>
+        <var name="attack" type="int"/>
+        <var name="defense" type="int"/>
+        <var name="speed" type="int"/>
+    </bean>
+
+    <bean name="AdvancedStats">
+        <var name="crit_rate" type="float"/>
+        <var name="crit_damage" type="float"/>
+        <var name="hit_rate" type="float"/>
+        <var name="dodge_rate" type="float"/>
+    </bean>
+
+    <bean name="EquipStats">
+        <var name="base" type="BaseStats"/>
+        <var name="advanced" type="AdvancedStats?"/>
+        <var name="element_bonus" type="map,EElementType,float"/>
+    </bean>
+
+    <!-- ========================
+         Beans（任务：多态 QuestCondition）
+         ======================== -->
+
+    <bean name="QuestCondition"/>
+
+    <bean name="KillMonsterCondition" parent="QuestCondition" alias="击杀">
+        <var name="monster_id" type="int"/>
+        <var name="count" type="int"/>
+    </bean>
+
+    <bean name="CollectItemCondition" parent="QuestCondition" alias="收集">
+        <var name="item_id" type="int"/>
+        <var name="count" type="int"/>
+    </bean>
+
+    <bean name="ReachLocationCondition" parent="QuestCondition" alias="到达">
+        <var name="location_id" type="int"/>
+    </bean>
+
+    <bean name="TalkToNpcCondition" parent="QuestCondition" alias="对话">
+        <var name="npc_id" type="int"/>
+    </bean>
+
+    <bean name="LevelCondition" parent="QuestCondition" alias="等级">
+        <var name="required_level" type="int"/>
+    </bean>
+
+    <!-- ========================
+         Table value beans
+         ======================== -->
+
+    <bean name="Item">
+        <var name="id" type="int"/>
+        <var name="key" type="string"/>
+        <var name="name" type="string"/>
+        <var name="rarity" type="ERarity"/>
+    </bean>
+
+    <bean name="Character">
+        <var name="id" type="int"/>
+        <var name="name" type="string"/>
+        <var name="class" type="ECharacterClass"/>
+        <var name="level" type="int"/>
+        <var name="base_stats" type="BaseStats"/>
+        <var name="element" type="EElementType?"/>
+        <var name="desc" type="string?"/>
+    </bean>
+
+    <bean name="LevelConfig">
+        <var name="max_level" type="int"/>
+        <var name="exp_base" type="int"/>
+        <var name="exp_factor" type="float"/>
+        <var name="hp_per_level" type="int"/>
+        <var name="mp_per_level" type="int"/>
+    </bean>
+
+    <bean name="ClassConfig">
+        <var name="class" type="ECharacterClass"/>
+        <var name="start_stats" type="BaseStats"/>
+        <var name="start_skill_id" type="int?"/>
+    </bean>
+
+    <bean name="Skill">
+        <var name="id" type="int"/>
+        <var name="name" type="string"/>
+        <var name="cooldown" type="float"/>
+        <var name="cost" type="int"/>
+        <var name="cast_range" type="FloatRange?"/>
+        <var name="desc" type="string?"/>
+    </bean>
+
+    <bean name="SkillUpgrade">
+        <var name="id" type="int"/>
+        <var name="level" type="int"/>
+        <var name="need_gold" type="int"/>
+        <var name="effects" type="list,SkillEffect"/>
+    </bean>
+
+    <bean name="Equipment">
+        <var name="id" type="int"/>
+        <var name="name" type="string"/>
+        <var name="rarity" type="ERarity"/>
+        <var name="slot" type="EEquipSlot"/>
+        <var name="weapon_type" type="EWeaponType?"/>
+        <var name="stats" type="EquipStats"/>
+        <var name="desc" type="string?"/>
+    </bean>
+
+    <bean name="EquipSet">
+        <var name="id" type="int"/>
+        <var name="name" type="string"/>
+        <var name="bonuses" type="map,int,BaseStats"/>
+    </bean>
+
+    <bean name="Quest">
+        <var name="quest_type" type="EQuestType"/>
+        <var name="quest_id" type="int"/>
+        <var name="name" type="string"/>
+        <var name="level_req" type="int"/>
+        <var name="conditions" type="list,QuestCondition"/>
+        <var name="next_quest" type="int?"/>
+    </bean>
+
+    <bean name="QuestReward">
+        <var name="quest_id" type="int"/>
+        <var name="rewards" type="list,Reward"/>
+        <var name="random_rewards" type="list,RandomReward"/>
+    </bean>
+
+    <bean name="QuestDialog">
+        <var name="quest_id" type="int"/>
+        <var name="step" type="int"/>
+        <var name="speaker" type="string"/>
+        <var name="content" type="text"/>
+    </bean>
+
+    <bean name="DungeonGlobalConfig">
+        <var name="daily_limit" type="int"/>
+        <var name="energy_cost" type="int"/>
+        <var name="sweep_unlock_star" type="int"/>
+        <var name="global_buffs" type="list,BuffEffect"/>
+    </bean>
+
+    <bean name="DungeonDrop">
+        <var name="id" type="int"/>
+        <var name="need_buffs" type="EBuffType"/>
+        <var name="rewards" type="list,Reward"/>
+    </bean>
+
+    <bean name="ShopItem">
+        <var name="id" type="int"/>
+        <var name="item_id" type="int"/>
+        <var name="price" type="int"/>
+        <var name="currency_id" type="int"/>
+        <var name="stock" type="int?"/>
+        <var name="refresh_time" type="datetime"/>
+        <var name="available_time" type="DateTimeRange?"/>
+    </bean>
+
+    <bean name="SystemParam">
+        <var name="id" type="int"/>
+        <var name="vec_stream" type="Vec3"/>
+        <var name="vec_lite" type="Vec3"/>
+        <var name="vec_json" type="Vec3"/>
+        <var name="vec_lua" type="Vec3"/>
+    </bean>
+
+    <!-- ========================
+         Tables
+         ======================== -->
+
+    <table name="TbItem" value="Item" index="id,key" input="item/道具表.xlsx"/>
+
+    <table name="TbCharacter" value="Character" index="id" input="character/角色表.xlsx"/>
+    <table name="TbLevelConfig" value="LevelConfig" mode="one" input="character/等级配置.xlsx"/>
+    <table name="TbClassConfig" value="ClassConfig" index="class" input="character/职业配置.xlsx"/>
+
+    <table name="TbSkill" value="Skill" index="id" input="skill/技能表.xlsx"/>
+    <table name="TbSkillUpgrade" value="SkillUpgrade" mode="list" index="id+level" input="skill/技能升级表.xlsx"/>
+
+    <table name="TbEquip" value="Equipment" index="id" input="equip/装备表.xlsx"/>
+    <table name="TbEquipSet" value="EquipSet" index="id" input="equip/套装表.xlsx"/>
+
+    <table name="TbQuest" value="Quest" mode="list" index="quest_type+quest_id" input="quest/任务表.xlsx"/>
+    <table name="TbQuestReward" value="QuestReward" index="quest_id" input="quest/任务奖励表.xlsx"/>
+    <table name="TbQuestDialog" value="QuestDialog" mode="list" input="quest/任务对话表.xlsx"/>
+
+    <table name="TbDungeonGlobal" value="DungeonGlobalConfig" mode="one" input="dungeon/副本全局配置.xlsx"/>
+    <table name="TbDungeonDrop" value="DungeonDrop" index="id" input="dungeon/副本掉落表.xlsx"/>
+
+    <table name="TbShopItem" value="ShopItem" index="id" input="shop/商店物品表.xlsx"/>
+    <table name="TbSystemParam" value="SystemParam" index="id" input="config/系统参数.xlsx"/>
+
+</module>
